@@ -24,7 +24,7 @@ export function AdminLogin({ onLoginSuccess, onSwitchToGeneralLogin }) {
     e.preventDefault();
 
     if (!formData.email.trim() || !formData.password) {
-      setErrorMessage("Please enter both Manager email and password.");
+      setErrorMessage("Please enter both Manager email/ID and password.");
       return;
     }
 
@@ -88,10 +88,10 @@ export function AdminLogin({ onLoginSuccess, onSwitchToGeneralLogin }) {
           )}
 
           <form onSubmit={handleSubmit} autoComplete="off">
-            {/* Email Field */}
+            {/* Email / ID Field */}
             <div className="mb-3">
               <label htmlFor="adminEmail" className="form-label fw-semibold small">
-                Manager Email Address
+                Manager Work Email or ID
               </label>
               <div className="input-group">
                 <span className="input-group-text bg-light border-end-0">
@@ -99,10 +99,10 @@ export function AdminLogin({ onLoginSuccess, onSwitchToGeneralLogin }) {
                 </span>
                 <input
                   id="adminEmail"
-                  type="email"
+                  type="text"
                   name="email"
                   className="form-control border-start-0 ps-0"
-                  placeholder="admin@dayflow.com"
+                  placeholder="admin@dayflow.com or ADM001"
                   value={formData.email}
                   onChange={handleChange}
                   required

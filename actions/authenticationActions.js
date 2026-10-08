@@ -63,7 +63,7 @@ const register = async (req, res, next) => {
     }
 
     const existingUser = await User.findOne({
-      $or: [{ email: email.toLowerCase() }, { employeeId: employeeId.toUpperCase() }],
+      $or: [{ email: email.toLowerCase().trim() }, { employeeId: employeeId.toUpperCase().trim() }],
     });
 
     if (existingUser) {
@@ -116,13 +116,19 @@ const login = async (req, res, next) => {
       });
     }
 
+    const identifier = String(email).trim();
+
+    // Support login via either work email or employee ID
     const user = await User.findOne({
-      email: email.trim().toLowerCase(),
+      $or: [
+        { email: identifier.toLowerCase() },
+        { employeeId: identifier.toUpperCase() },
+      ],
     });
 
     if (!user) {
       return res.status(401).json({
-        message: "Invalid email or password",
+        message: "Invalid email or password.",
       });
     }
 
@@ -130,7 +136,7 @@ const login = async (req, res, next) => {
 
     if (!passwordMatch) {
       return res.status(401).json({
-        message: "Invalid email or password",
+        message: "Invalid email or password.",
       });
     }
 
@@ -200,10 +206,13 @@ const seedAdmin = async () => {
   try {
     // 1. Seed Manager
     const adminPassword = await bcrypt.hash("admin123", 10);
-    let admin = await User.findOne({ email: "admin@dayflow.com" });
+    let admin = await User.findOne({
+      $or: [{ email: "admin@dayflow.com" }, { employeeId: "ADM001" }, { employeeId: "MGR001" }],
+    });
+
     if (!admin) {
       admin = await User.create({
-        employeeId: "MGR001",
+        employeeId: "ADM001",
         name: "Manager",
         email: "admin@dayflow.com",
         password: adminPassword,
@@ -220,12 +229,16 @@ const seedAdmin = async () => {
       admin.role = "Admin";
       admin.status = "Active";
       admin.approvalStatus = "Approved";
+      admin.password = adminPassword;
       await admin.save();
     }
 
     // 2. Seed HR Officer
     const hrPassword = await bcrypt.hash("hr12345", 10);
-    let hr = await User.findOne({ email: "hr@dayflow.com" });
+    let hr = await User.findOne({
+      $or: [{ email: "hr@dayflow.com" }, { employeeId: "HR001" }],
+    });
+
     if (!hr) {
       hr = await User.create({
         employeeId: "HR001",
@@ -245,12 +258,16 @@ const seedAdmin = async () => {
       hr.role = "HR Officer";
       hr.status = "Active";
       hr.approvalStatus = "Approved";
+      hr.password = hrPassword;
       await hr.save();
     }
 
     // 3. Seed Default Active Employee
     const empPassword = await bcrypt.hash("emp12345", 10);
-    let employee = await User.findOne({ email: "employee@dayflow.com" });
+    let employee = await User.findOne({
+      $or: [{ email: "employee@dayflow.com" }, { employeeId: "EMP001" }],
+    });
+
     if (!employee) {
       employee = await User.create({
         employeeId: "EMP001",
@@ -267,10 +284,10 @@ const seedAdmin = async () => {
       });
       console.log("Default Employee seeded: employee@dayflow.com / emp12345");
     } else {
-      if (!employee.approvalStatus) {
-        employee.approvalStatus = "Approved";
-        await employee.save();
-      }
+      employee.status = "Active";
+      employee.approvalStatus = "Approved";
+      employee.password = empPassword;
+      await employee.save();
     }
 
     // 4. Ensure any existing users in DB without approvalStatus are Approved

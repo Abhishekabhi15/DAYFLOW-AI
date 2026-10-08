@@ -47,12 +47,22 @@ app.use("/api", (err, req, res, next) => {
   });
 });
 
+// Catch-all 404 for unmatched /api requests (ensures JSON response, never HTML)
+app.use("/api", (req, res) => {
+  res.status(404).json({
+    message: `API endpoint '${req.method} ${req.originalUrl}' not found.`,
+  });
+});
+
 // Serve frontend static build
 const frontendDistPath = path.join(__dirname, "frontend", "dist");
 app.use(express.static(frontendDistPath));
 
-// SPA fallback for client-side routing
+// SPA fallback for non-API client-side routing
 app.use((req, res) => {
+  if (req.path.startsWith("/api")) {
+    return res.status(404).json({ message: `API route '${req.originalUrl}' not found.` });
+  }
   res.sendFile(path.join(frontendDistPath, "index.html"));
 });
 
@@ -83,6 +93,22 @@ async function startServer() {
     app.listen(PORT, "0.0.0.0", () => {
       console.log(`Dayflow HRMS server running on http://0.0.0.0:${PORT}`);
     });
+
+    // Also bind port 5001 for local Vite dev compatibility
+    if (PORT !== 5001) {
+      try {
+        const localServer = app.listen(5001, "0.0.0.0", () => {
+          console.log(`Dayflow HRMS local API endpoint also available on http://0.0.0.0:5001`);
+        });
+        localServer.on("error", (err) => {
+          if (err.code !== "EADDRINUSE") {
+            console.warn("Port 5001 notice:", err.message);
+          }
+        });
+      } catch (portErr) {
+        // Port 5001 notice
+      }
+    }
   } catch (error) {
     console.error("Failed to connect to primary MongoDB URI, attempting fallback:", error.message);
     try {
@@ -96,7 +122,6 @@ async function startServer() {
       });
     } catch (fallbackErr) {
       console.error("Fatal: MongoDB connection totally failed:", fallbackErr.message);
-      // Still start server so health checks and API errors respond gracefully
       app.listen(PORT, "0.0.0.0", () => {
         console.log(`Dayflow HRMS running in offline mode on port ${PORT}`);
       });

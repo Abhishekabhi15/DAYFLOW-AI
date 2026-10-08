@@ -8,7 +8,7 @@ const {
 
 const {
   authenticate,
-  verifyAdmin,
+  verifyAdminOrHR,
 } = require("../access/authentication");
 
 const router = express.Router();
@@ -17,6 +17,7 @@ router.post("/", authenticate, applyLeave);
 
 router.get("/", authenticate, getLeaves);
 
-router.patch("/:id", authenticate, verifyAdmin, updateLeave);
+router.patch("/:id", authenticate, verifyAdminOrHR, updateLeave);
 
 module.exports = router;
+

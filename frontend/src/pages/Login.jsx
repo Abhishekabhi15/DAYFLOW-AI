@@ -24,7 +24,7 @@ export function Login({ onSwitchToAdmin, onLoginSuccess }) {
     e.preventDefault();
 
     if (!formData.email.trim() || !formData.password) {
-      setErrorMessage("Please enter both work email and password.");
+      setErrorMessage("Please enter both work email/ID and password.");
       return;
     }
 
@@ -88,21 +88,21 @@ export function Login({ onSwitchToAdmin, onLoginSuccess }) {
           )}
 
           <form onSubmit={handleSubmit} autoComplete="off">
-            {/* Email Field */}
+            {/* Email / Employee ID Field */}
             <div className="mb-3">
               <label htmlFor="loginEmail" className="form-label fw-semibold small">
-                Work Email Address
+                Work Email or Employee ID
               </label>
               <div className="input-group">
                 <span className="input-group-text bg-light border-end-0">
-                  <i className="bi bi-envelope text-muted"></i>
+                  <i className="bi bi-person-badge text-muted"></i>
                 </span>
                 <input
                   id="loginEmail"
-                  type="email"
+                  type="text"
                   name="email"
                   className="form-control border-start-0 ps-0"
-                  placeholder="employee@dayflow.com"
+                  placeholder="employee@dayflow.com or EMP001"
                   value={formData.email}
                   onChange={handleChange}
                   required

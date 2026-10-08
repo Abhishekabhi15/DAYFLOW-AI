@@ -1,0 +1,5 @@
+{
+  "name": "Dayflow HRMS",
+  "description": "Enterprise Human Resource Management System with role-based access, employee onboarding approval workflows, payroll tracking, attendance, and leave management.",
+  "capabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

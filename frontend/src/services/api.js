@@ -1,11 +1,48 @@
-const API_BASE_URL =
-  import.meta.env.VITE_API_URL || "/api";
+/**
+ * Dayflow HRMS - API Service Layer
+ * Reliable client HTTP interface with environment-aware routing and professional error handling
+ */
+
+const getApiBaseUrl = () => {
+  if (import.meta.env.VITE_API_URL) {
+    const custom = import.meta.env.VITE_API_URL.trim();
+    return custom.endsWith("/") ? custom.slice(0, -1) : custom;
+  }
+
+  if (typeof window !== "undefined") {
+    // In hosted cloud environments (e.g. AI Studio container)
+    if (window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1") {
+      return "/api";
+    }
+    // If the browser is accessing port 3000 directly (single Express+SPA process)
+    if (window.location.port === "3000") {
+      return "/api";
+    }
+  }
+
+  // Standard local development configuration (Frontend on 5173, Backend on 5001)
+  return "http://localhost:5001/api";
+};
+
+/**
+ * Builds clean URL preventing duplicate '/api' segments
+ */
+function buildUrl(endpoint) {
+  const base = getApiBaseUrl();
+  const cleanEndpoint = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
+
+  if (base.endsWith("/api") && cleanEndpoint.startsWith("/api/")) {
+    return `${base}${cleanEndpoint.slice(4)}`;
+  }
+
+  return `${base}${cleanEndpoint}`;
+}
 
 /**
  * Core HTTP request handler
  */
 async function request(endpoint, options = {}) {
-  const url = `${API_BASE_URL}${endpoint.startsWith("/") ? endpoint : `/${endpoint}`}`;
+  const url = buildUrl(endpoint);
 
   const headers = {
     ...(options.headers || {}),
@@ -49,10 +86,31 @@ async function request(endpoint, options = {}) {
     }
 
     if (!response.ok) {
-      const errorMessage =
-        data?.message ||
-        data?.error ||
-        `Request failed with status ${response.status} (${response.statusText})`;
+      // Log technical details for developers
+      console.warn(`[Dayflow API HTTP ${response.status}] Request to ${url} failed:`, data);
+
+      let errorMessage = data?.message || data?.error;
+
+      // Professional semantic error handling
+      if (!errorMessage) {
+        if (response.status === 404) {
+          errorMessage = "Authentication service is unavailable. Please try again.";
+        } else if (response.status === 401) {
+          errorMessage = "Invalid email or password.";
+        } else if (response.status === 403) {
+          errorMessage = "You are not authorized to access this portal.";
+        } else if (response.status >= 500) {
+          errorMessage = "Something went wrong on the server. Please try again.";
+        } else {
+          errorMessage = `Request failed with status ${response.status}.`;
+        }
+      } else {
+        // Handle generic fallback text
+        if (response.status === 404 && (errorMessage.includes("404") || errorMessage.includes("not found"))) {
+          errorMessage = "Authentication service is unavailable. Please try again.";
+        }
+      }
+
       const error = new Error(errorMessage);
       error.status = response.status;
       error.data = data;
@@ -62,9 +120,8 @@ async function request(endpoint, options = {}) {
     return data;
   } catch (error) {
     if (error.name === "TypeError" && error.message.includes("fetch")) {
-      const netError = new Error(
-        "Unable to connect to backend server. Please verify the server is running."
-      );
+      console.error("[Dayflow Network Failure] Cannot reach backend server at:", url);
+      const netError = new Error("Unable to connect to the Dayflow server.");
       netError.status = 0;
       throw netError;
     }
