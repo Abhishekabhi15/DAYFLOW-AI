@@ -1,0 +1,9 @@
+# Use this workspace to collaborate
+workspace:
+  id: a0528171-f26f-4983-8450-76ef5e916f39
+
+localResources:
+  docs:
+    - ../dayflow-member2/README.md
+    - ../README.md
+EADME.md
