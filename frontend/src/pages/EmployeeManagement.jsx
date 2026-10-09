@@ -129,17 +129,20 @@ export function EmployeeManagement() {
         </div>
 
         {/* Tab Controls */}
-        <div className="btn-group p-1 bg-white border rounded-3 shadow-sm">
+        <div
+          className="btn-group p-1 border rounded-3 shadow-sm"
+          style={{ backgroundColor: "var(--surface-card)", borderColor: "var(--border-color)" }}
+        >
           <button
             type="button"
-            className={`btn btn-sm ${activeTab === "create" ? "btn-primary" : "btn-light text-muted border-0"}`}
+            className={`btn btn-sm ${activeTab === "create" ? "btn-primary" : "btn-outline-secondary border-0 text-muted"}`}
             onClick={() => setActiveTab("create")}
           >
             <i className="bi bi-person-plus-fill me-1"></i> Onboard Employee
           </button>
           <button
             type="button"
-            className={`btn btn-sm ${activeTab === "list" ? "btn-primary" : "btn-light text-muted border-0"}`}
+            className={`btn btn-sm ${activeTab === "list" ? "btn-primary" : "btn-outline-secondary border-0 text-muted"}`}
             onClick={() => {
               setActiveTab("list");
               fetchEmployees();
@@ -477,7 +480,7 @@ export function EmployeeManagement() {
                           <small className="text-muted font-monospace">{emp.employeeId} &bull; {emp.email}</small>
                         </td>
                         <td>
-                          <span className="badge bg-light text-dark border">
+                          <span className="user-role-tag">
                             {emp.role === "Admin" ? "Manager" : emp.role}
                           </span>
                         </td>

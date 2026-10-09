@@ -104,7 +104,7 @@ export function EmployeeDirectory() {
               {/* Search input */}
               <div className="col-12 col-md-5">
                 <div className="input-group input-group-sm">
-                  <span className="input-group-text bg-light border-end-0">
+                  <span className="input-group-text border-end-0">
                     <i className="bi bi-search text-muted"></i>
                   </span>
                   <input
@@ -225,7 +225,7 @@ export function EmployeeDirectory() {
                       <td className="small">{emp.designation || "Employee"}</td>
                       <td className="small text-muted">{formatDate(emp.joiningDate)}</td>
                       <td>
-                        <span className="badge bg-light text-dark border">
+                        <span className="user-role-tag">
                           {emp.role === "Admin" ? "Manager" : emp.role}
                         </span>
                       </td>

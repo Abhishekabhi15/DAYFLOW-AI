@@ -148,7 +148,7 @@ function Register({ onSwitchToLogin, onRegisterSuccess }) {
                 Full Name
               </label>
               <div className="input-group">
-                <span className="input-group-text bg-light border-end-0">
+                <span className="input-group-text border-end-0">
                   <i className="bi bi-person text-palette-teal"></i>
                 </span>
                 <input
@@ -171,7 +171,7 @@ function Register({ onSwitchToLogin, onRegisterSuccess }) {
                 Employee ID
               </label>
               <div className="input-group">
-                <span className="input-group-text bg-light border-end-0">
+                <span className="input-group-text border-end-0">
                   <i className="bi bi-card-heading text-palette-teal"></i>
                 </span>
                 <input
@@ -193,7 +193,7 @@ function Register({ onSwitchToLogin, onRegisterSuccess }) {
                 Work Email
               </label>
               <div className="input-group">
-                <span className="input-group-text bg-light border-end-0">
+                <span className="input-group-text border-end-0">
                   <i className="bi bi-envelope text-palette-teal"></i>
                 </span>
                 <input
@@ -215,7 +215,7 @@ function Register({ onSwitchToLogin, onRegisterSuccess }) {
                 Password
               </label>
               <div className="input-group">
-                <span className="input-group-text bg-light border-end-0">
+                <span className="input-group-text border-end-0">
                   <i className="bi bi-lock text-palette-teal"></i>
                 </span>
                 <input
@@ -240,7 +240,7 @@ function Register({ onSwitchToLogin, onRegisterSuccess }) {
 
               {/* Real-time Password Requirements */}
               {formData.password && (
-                <div className="p-3 bg-light rounded-3 mt-2 border">
+                <div className="p-3 rounded-3 mt-2 border" style={{ backgroundColor: "var(--surface-muted)", borderColor: "var(--border-color)" }}>
                   <small className="fw-semibold d-block text-muted mb-2">
                     Password requirements:
                   </small>
@@ -276,7 +276,7 @@ function Register({ onSwitchToLogin, onRegisterSuccess }) {
                 Confirm Password
               </label>
               <div className="input-group">
-                <span className="input-group-text bg-light border-end-0">
+                <span className="input-group-text border-end-0">
                   <i className="bi bi-lock-fill text-palette-teal"></i>
                 </span>
                 <input

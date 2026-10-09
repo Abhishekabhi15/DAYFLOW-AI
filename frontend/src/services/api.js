@@ -181,6 +181,11 @@ export const attendanceApi = {
       method: "POST",
     }),
 
+  getTodayAttendance: () =>
+    request("/attendance/today", {
+      method: "GET",
+    }),
+
   getAttendance: (status = "") => {
     const query = status ? `?status=${encodeURIComponent(status)}` : "";
     return request(`/attendance${query}`, {

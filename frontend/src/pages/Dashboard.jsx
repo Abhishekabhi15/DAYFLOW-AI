@@ -78,10 +78,11 @@ export function Dashboard({ onNavigate }) {
           recentSalaries: data.recentSalaries || [],
         });
       } else {
-        const [attendanceRes, leavesRes, salaryRes] = await Promise.all([
+        const [attendanceRes, leavesRes, salaryRes, todayData] = await Promise.all([
           attendanceApi.getAttendance(),
           leaveApi.getLeaves(),
           salaryApi.getMySalary().catch(() => null),
+          attendanceApi.getTodayAttendance().catch(() => null),
         ]);
 
         const attendanceList = Array.isArray(attendanceRes) ? attendanceRes : [];
@@ -90,9 +91,7 @@ export function Dashboard({ onNavigate }) {
         setEmployeeAttendance(attendanceList);
         setEmployeeLeaves(leavesList);
         setEmployeeSalary(salaryRes?.currentSalary || null);
-
-        const todayMatch = attendanceList.find((record) => isTodayRecord(record));
-        setTodayRecord(todayMatch || null);
+        setTodayRecord(todayData || null);
       }
     } catch (err) {
       setError(err.message || "Failed to load dashboard overview.");
@@ -532,11 +531,11 @@ export function Dashboard({ onNavigate }) {
                       </small>
                       <StatusBadge
                         status={
-                          todayRecord?.checkOut
+                          todayRecord?.checkIn && todayRecord?.checkOut
                             ? "Completed"
-                            : todayRecord?.checkIn
-                              ? "Present"
-                              : "Pending"
+                            : todayRecord?.checkIn && !todayRecord?.checkOut
+                              ? "In Progress"
+                              : "Not Checked In"
                         }
                       />
                     </div>
@@ -548,7 +547,8 @@ export function Dashboard({ onNavigate }) {
                       })}
                     </h5>
                     <p className="text-muted small mb-3">
-                      Check-in: <strong className="font-monospace text-primary">{todayRecord?.checkIn ? formatTime(todayRecord.checkIn) : "--:--"}</strong>
+                      Check-in: <strong className="font-monospace text-primary">{todayRecord?.checkIn ? formatTime(todayRecord.checkIn) : "--"}</strong>
+                      <span className="ms-2">| Check-out: <strong className="font-monospace text-primary">{todayRecord?.checkIn && todayRecord?.checkOut ? formatTime(todayRecord.checkOut) : "--"}</strong></span>
                     </p>
                   </div>
 

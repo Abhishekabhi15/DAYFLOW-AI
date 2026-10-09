@@ -94,7 +94,7 @@ export function AdminLogin({ onLoginSuccess, onSwitchToGeneralLogin }) {
                 Manager Work Email or ID
               </label>
               <div className="input-group">
-                <span className="input-group-text bg-light border-end-0">
+                <span className="input-group-text border-end-0">
                   <i className="bi bi-shield-check text-muted"></i>
                 </span>
                 <input
@@ -117,7 +117,7 @@ export function AdminLogin({ onLoginSuccess, onSwitchToGeneralLogin }) {
                 Manager Password
               </label>
               <div className="input-group">
-                <span className="input-group-text bg-light border-end-0">
+                <span className="input-group-text border-end-0">
                   <i className="bi bi-key text-muted"></i>
                 </span>
                 <input

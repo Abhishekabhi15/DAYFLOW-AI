@@ -42,7 +42,7 @@ const getDashboard = async (req, res) => {
 
     const presentCount = await Attendance.countDocuments({
       date: { $gte: today },
-      status: "Present",
+      status: { $in: ["Present", "In Progress", "Completed"] },
     });
 
     const pendingLeaveCount = await Leave.countDocuments({

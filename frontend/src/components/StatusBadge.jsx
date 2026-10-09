@@ -15,10 +15,17 @@ export function StatusBadge({ status, type }) {
     normalized === "approved" ||
     normalized === "active" ||
     normalized === "credited" ||
-    normalized === "present"
+    normalized === "present" ||
+    normalized === "completed"
   ) {
     badgeClass = "badge-status-approved";
-    icon = "bi-check-circle-fill";
+    icon = normalized === "completed" ? "bi-check2-all" : "bi-check-circle-fill";
+  } else if (
+    normalized === "in progress" ||
+    normalized === "checked in"
+  ) {
+    badgeClass = "badge-status-pending";
+    icon = "bi-play-circle-fill";
   } else if (
     normalized === "rejected" ||
     normalized === "inactive" ||
@@ -33,6 +40,11 @@ export function StatusBadge({ status, type }) {
   ) {
     badgeClass = "badge-status-processed";
     icon = "bi-info-circle-fill";
+  } else if (
+    normalized === "not checked in"
+  ) {
+    badgeClass = "badge-status-neutral";
+    icon = "bi-dash-circle";
   }
 
   return (

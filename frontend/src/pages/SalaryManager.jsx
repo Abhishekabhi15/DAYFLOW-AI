@@ -144,7 +144,7 @@ export function SalaryManager() {
             {/* Search */}
             <div className="col-12 col-md-5">
               <div className="input-group input-group-sm">
-                <span className="input-group-text bg-light border-end-0">
+                <span className="input-group-text border-end-0">
                   <i className="bi bi-search text-muted"></i>
                 </span>
                 <input

@@ -85,13 +85,13 @@ export function Profile() {
         setEditAddress(user.address || "");
       }
 
-      const attendanceData = await attendanceApi.getAttendance();
+      const [todayData, attendanceData] = await Promise.all([
+        attendanceApi.getTodayAttendance().catch(() => null),
+        attendanceApi.getAttendance().catch(() => []),
+      ]);
       const list = Array.isArray(attendanceData) ? attendanceData : [];
       setAttendanceHistory(list);
-
-      const today = new Date();
-      const todayMatch = list.find((rec) => isSameDay(rec.date, today));
-      setTodayAttendance(todayMatch || null);
+      setTodayAttendance(todayData || null);
     } catch (error) {
       showMessage("danger", error.message || "Failed to load profile data.");
     } finally {
@@ -369,7 +369,7 @@ export function Profile() {
                     <tr>
                       <th className="text-muted ps-0">Role</th>
                       <td>
-                        <span className="badge bg-light text-dark border">
+                        <span className="user-role-tag">
                           {profile.role === "Admin" ? "Manager" : profile.role}
                         </span>
                       </td>
@@ -444,10 +444,10 @@ export function Profile() {
               <div className="mt-1">
                 <StatusBadge
                   status={
-                    todayAttendance?.checkOut
+                    todayAttendance?.checkIn && todayAttendance?.checkOut
                       ? "Completed"
-                      : todayAttendance?.checkIn
-                        ? "Present"
+                      : todayAttendance?.checkIn && !todayAttendance?.checkOut
+                        ? "In Progress"
                         : "Not Checked In"
                   }
                 />
@@ -456,13 +456,13 @@ export function Profile() {
             <div className="col-md-3">
               <small className="text-muted d-block">Check-In</small>
               <strong className="font-monospace fs-6">
-                {todayAttendance?.checkIn ? formatTime(todayAttendance.checkIn) : "--:--"}
+                {todayAttendance?.checkIn ? formatTime(todayAttendance.checkIn) : "--"}
               </strong>
             </div>
             <div className="col-md-3">
               <small className="text-muted d-block">Check-Out</small>
               <strong className="font-monospace fs-6">
-                {todayAttendance?.checkOut ? formatTime(todayAttendance.checkOut) : "--:--"}
+                {todayAttendance?.checkIn && todayAttendance?.checkOut ? formatTime(todayAttendance.checkOut) : "--"}
               </strong>
             </div>
             <div className="col-md-3">

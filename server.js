@@ -66,11 +66,36 @@ app.use((req, res) => {
   res.sendFile(path.join(frontendDistPath, "index.html"));
 });
 
+function sanitizeMongoUri(uri) {
+  if (!uri || typeof uri !== "string") return uri;
+  try {
+    const protocolMatch = uri.match(/^(mongodb(?:\+srv)?:\/\/)(.*)$/);
+    if (!protocolMatch) return uri;
+    const protocol = protocolMatch[1];
+    const rest = protocolMatch[2];
+    const lastAtIndex = rest.lastIndexOf("@");
+    if (lastAtIndex === -1) return uri;
+    const authPart = rest.slice(0, lastAtIndex);
+    const hostPart = rest.slice(lastAtIndex + 1);
+    const colonIndex = authPart.indexOf(":");
+    if (colonIndex !== -1) {
+      const username = authPart.slice(0, colonIndex);
+      const password = authPart.slice(colonIndex + 1);
+      const encodedUser = encodeURIComponent(decodeURIComponent(username));
+      const encodedPass = encodeURIComponent(decodeURIComponent(password));
+      return `${protocol}${encodedUser}:${encodedPass}@${hostPart}`;
+    }
+  } catch (err) {
+    return uri;
+  }
+  return uri;
+}
+
 // Database connection & startup sequence
 async function startServer() {
-  let mongoUri = process.env.MONGO_URI;
+  let mongoUri = sanitizeMongoUri(process.env.MONGO_URI);
 
-  if (!mongoUri) {
+  if (!mongoUri || !mongoUri.trim()) {
     try {
       console.log("No MONGO_URI specified, initializing in-memory Mongo instance...");
       const { MongoMemoryServer } = require("mongodb-memory-server");
@@ -84,8 +109,8 @@ async function startServer() {
   }
 
   try {
-    await mongoose.connect(mongoUri);
-    console.log("Connected to MongoDB successfully.");
+    await mongoose.connect(mongoUri, { dbName: "dayflow" });
+    console.log("Connected to MongoDB successfully (database: dayflow).");
 
     // Seed default administrative & sample accounts
     await seedAdmin();
@@ -114,7 +139,7 @@ async function startServer() {
     try {
       const { MongoMemoryServer } = require("mongodb-memory-server");
       const mongod = await MongoMemoryServer.create();
-      await mongoose.connect(mongod.getUri());
+      await mongoose.connect(mongod.getUri(), { dbName: "dayflow" });
       console.log("Fallback MongoDB connected.");
       await seedAdmin();
       app.listen(PORT, "0.0.0.0", () => {

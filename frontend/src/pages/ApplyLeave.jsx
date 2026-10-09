@@ -135,7 +135,19 @@ export function ApplyLeave({ onLeaveSubmitted }) {
     return diff > 0 ? diff : 1;
   };
 
-  const filteredLeaves = leavesList.filter((leave) => {
+  const staffRequests = leavesList.filter((leave) => {
+    if (user?.role === "HR Officer") {
+      // HR Leave page: Show Employee leave requests
+      return leave.employee?.role === "Employee";
+    }
+    if (user?.role === "Admin") {
+      // Manager Leave page: Show Employee leave + HR Officer leave
+      return leave.employee?.role === "Employee" || leave.employee?.role === "HR Officer";
+    }
+    return true;
+  });
+
+  const filteredLeaves = staffRequests.filter((leave) => {
     if (statusFilter === "All") return true;
     return leave.status === statusFilter;
   });
@@ -154,17 +166,20 @@ export function ApplyLeave({ onLeaveSubmitted }) {
         </div>
 
         {/* Tab Navigation */}
-        <div className="btn-group p-1 bg-white border rounded-3 shadow-sm">
+        <div
+          className="btn-group p-1 border rounded-3 shadow-sm"
+          style={{ backgroundColor: "var(--surface-card)", borderColor: "var(--border-color)" }}
+        >
           <button
             type="button"
-            className={`btn btn-sm ${activeTab === "apply" ? "btn-primary" : "btn-light text-muted border-0"}`}
+            className={`btn btn-sm ${activeTab === "apply" ? "btn-primary" : "btn-outline-secondary border-0 text-muted"}`}
             onClick={() => setActiveTab("apply")}
           >
             <i className="bi bi-pencil-square me-1"></i> Apply Leave
           </button>
           <button
             type="button"
-            className={`btn btn-sm ${activeTab === "history" ? "btn-primary" : "btn-light text-muted border-0"}`}
+            className={`btn btn-sm ${activeTab === "history" ? "btn-primary" : "btn-outline-secondary border-0 text-muted"}`}
             onClick={() => {
               setActiveTab("history");
               fetchLeaves();
@@ -175,14 +190,14 @@ export function ApplyLeave({ onLeaveSubmitted }) {
           {isAdminOrHR && (
             <button
               type="button"
-              className={`btn btn-sm ${activeTab === "approvals" ? "btn-primary" : "btn-light text-muted border-0"}`}
+              className={`btn btn-sm ${activeTab === "approvals" ? "btn-primary" : "btn-outline-secondary border-0 text-muted"}`}
               onClick={() => {
                 setActiveTab("approvals");
                 fetchLeaves();
               }}
             >
               <i className="bi bi-check2-square me-1"></i> Staff Requests (
-              {leavesList.filter((l) => l.status === "Pending").length})
+              {staffRequests.filter((l) => l.status === "Pending").length})
             </button>
           )}
         </div>
@@ -427,80 +442,112 @@ export function ApplyLeave({ onLeaveSubmitted }) {
                 <table className="table table-hover align-middle mb-0">
                   <thead className="table-light">
                     <tr>
-                      <th>Employee</th>
+                      <th>Requester</th>
                       <th>Type</th>
                       <th>Dates</th>
                       <th>Reason</th>
                       <th>Status</th>
+                      <th>Reviewer / Notes</th>
                       <th>Review Action</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredLeaves.map((leave) => (
-                      <tr key={leave._id}>
-                        <td>
-                          <div className="fw-bold">{leave.employee?.name || "Employee"}</div>
-                          <small className="text-muted font-monospace">
-                            {leave.employee?.employeeId} &bull; {leave.employee?.department || "General"}
-                          </small>
-                        </td>
-                        <td className="small fw-semibold">{leave.leaveType}</td>
-                        <td>
-                          <div className="small fw-semibold">
-                            {formatDate(leave.startDate)} — {formatDate(leave.endDate)}
-                          </div>
-                          <small className="text-muted">
-                            {calculateDays(leave.startDate, leave.endDate)} days
-                          </small>
-                        </td>
-                        <td className="small text-muted" style={{ maxWidth: "220px" }}>
-                          {leave.remarks || "--"}
-                        </td>
-                        <td>
-                          <StatusBadge status={leave.status} />
-                        </td>
-                        <td>
-                          {leave.status === "Pending" ? (
-                            <div className="d-flex flex-column gap-1" style={{ minWidth: "200px" }}>
-                              <input
-                                type="text"
-                                className="form-control form-control-sm"
-                                placeholder="Review comment..."
-                                value={adminCommentInput[leave._id] || ""}
-                                onChange={(e) =>
-                                  setAdminCommentInput({
-                                    ...adminCommentInput,
-                                    [leave._id]: e.target.value,
-                                  })
-                                }
-                              />
-                              <div className="btn-group btn-group-sm w-100">
-                                <button
-                                  type="button"
-                                  className="btn btn-success"
-                                  disabled={processingId === leave._id}
-                                  onClick={() => handleAdminAction(leave._id, "Approved")}
-                                >
-                                  {processingId === leave._id ? "..." : "Approve"}
-                                </button>
-                                <button
-                                  type="button"
-                                  className="btn btn-outline-danger"
-                                  disabled={processingId === leave._id}
-                                  onClick={() => handleAdminAction(leave._id, "Rejected")}
-                                >
-                                  Reject
-                                </button>
-                              </div>
-                            </div>
-                          ) : (
-                            <small className="text-muted">
-                              {leave.adminComment || "Resolved"}
+                    {filteredLeaves.map((leave) => {
+                      const isOwn = String(leave.employee?._id || leave.employee) === String(user?._id);
+                      const requesterRole = leave.employee?.role || "Employee";
+                      const isHR = user?.role === "HR Officer";
+                      const isManager = user?.role === "Admin";
+                      const canAct =
+                        leave.status === "Pending" &&
+                        !isOwn &&
+                        ((isHR && requesterRole === "Employee") ||
+                          (isManager && (requesterRole === "Employee" || requesterRole === "HR Officer")));
+
+                      return (
+                        <tr key={leave._id}>
+                          <td>
+                            <div className="fw-bold">{leave.employee?.name || "Employee"}</div>
+                            <small className="text-muted font-monospace d-block">
+                              {leave.employee?.employeeId} &bull; {leave.employee?.department || "General"}
                             </small>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
+                            <span className="user-role-tag d-inline-block mt-1" style={{ fontSize: "0.68rem" }}>
+                              {requesterRole === "Admin" ? "Manager" : requesterRole}
+                            </span>
+                          </td>
+                          <td className="small fw-semibold">{leave.leaveType}</td>
+                          <td>
+                            <div className="small fw-semibold">
+                              {formatDate(leave.startDate)} — {formatDate(leave.endDate)}
+                            </div>
+                            <small className="text-muted">
+                              {calculateDays(leave.startDate, leave.endDate)} days
+                            </small>
+                          </td>
+                          <td className="small text-muted" style={{ maxWidth: "200px" }}>
+                            {leave.remarks || "--"}
+                          </td>
+                          <td>
+                            <StatusBadge status={leave.status} />
+                          </td>
+                          <td className="small text-muted" style={{ maxWidth: "200px" }}>
+                            {leave.approvedBy ? (
+                              <div className="fw-semibold" style={{ color: "var(--text-secondary)" }}>
+                                By: {leave.approvedBy.name || leave.approvedBy.employeeId}
+                              </div>
+                            ) : null}
+                            <div>{leave.adminComment || "--"}</div>
+                          </td>
+                          <td>
+                            {canAct ? (
+                              <div className="d-flex flex-column gap-1" style={{ minWidth: "190px" }}>
+                                <input
+                                  type="text"
+                                  className="form-control form-control-sm"
+                                  placeholder="Review comment..."
+                                  value={adminCommentInput[leave._id] || ""}
+                                  onChange={(e) =>
+                                    setAdminCommentInput({
+                                      ...adminCommentInput,
+                                      [leave._id]: e.target.value,
+                                    })
+                                  }
+                                />
+                                <div className="btn-group btn-group-sm w-100">
+                                  <button
+                                    type="button"
+                                    className="btn btn-success"
+                                    disabled={processingId === leave._id}
+                                    onClick={() => handleAdminAction(leave._id, "Approved")}
+                                  >
+                                    {processingId === leave._id ? "..." : "Approve"}
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="btn btn-outline-danger"
+                                    disabled={processingId === leave._id}
+                                    onClick={() => handleAdminAction(leave._id, "Rejected")}
+                                  >
+                                    Reject
+                                  </button>
+                                </div>
+                              </div>
+                            ) : isOwn ? (
+                              <span className="badge bg-secondary-subtle text-secondary">
+                                Your Request
+                              </span>
+                            ) : isHR && requesterRole === "HR Officer" ? (
+                              <span className="badge bg-warning-subtle text-warning">
+                                Requires Manager Review
+                              </span>
+                            ) : (
+                              <small className="text-muted">
+                                {leave.status}
+                              </small>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>

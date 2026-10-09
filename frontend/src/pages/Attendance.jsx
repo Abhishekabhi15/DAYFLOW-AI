@@ -41,18 +41,13 @@ export function Attendance() {
     setErrorMessage("");
 
     try {
-      const data = await attendanceApi.getAttendance(filter);
+      const [data, todayData] = await Promise.all([
+        attendanceApi.getAttendance(filter),
+        attendanceApi.getTodayAttendance().catch(() => null),
+      ]);
       const list = Array.isArray(data) ? data : [];
       setRecords(list);
-
-      const todayMatch = list.find((rec) => {
-        if (isAdminOrHR) {
-          const recEmpId = rec.employee?._id || rec.employee;
-          return isTodayRecord(rec) && recEmpId === user?._id;
-        }
-        return isTodayRecord(rec);
-      });
-      setTodayRecord(todayMatch || null);
+      setTodayRecord(todayData || null);
     } catch (err) {
       setErrorMessage(err.message || "Failed to load attendance records.");
     } finally {
@@ -174,9 +169,20 @@ export function Attendance() {
         <div className="card-body p-4">
           <div className="d-flex justify-content-between align-items-center flex-wrap gap-3">
             <div>
-              <span className="badge-status badge-status-neutral mb-2">
-                Daily Verification
-              </span>
+              <div className="d-flex align-items-center gap-2 mb-2">
+                <StatusBadge
+                  status={
+                    todayRecord?.checkIn && todayRecord?.checkOut
+                      ? "Completed"
+                      : todayRecord?.checkIn && !todayRecord?.checkOut
+                        ? "In Progress"
+                        : "Not Checked In"
+                  }
+                />
+                <span className="badge-status badge-status-neutral">
+                  Daily Verification
+                </span>
+              </div>
               <h4 className="fw-bold mb-1">
                 {new Date().toLocaleDateString("en-US", {
                   weekday: "long",
@@ -188,18 +194,18 @@ export function Attendance() {
               <p className="mb-0 text-muted small">
                 Session Status:{" "}
                 <strong className="text-primary">
-                  {todayRecord?.checkOut
-                    ? "Completed (Checked Out)"
-                    : todayRecord?.checkIn
-                      ? "Present (Checked In)"
-                      : "Not Checked In Yet"}
+                  {todayRecord?.checkIn && todayRecord?.checkOut
+                    ? "Completed"
+                    : todayRecord?.checkIn && !todayRecord?.checkOut
+                      ? "In Progress"
+                      : "Not Checked In"}
                 </strong>
                 {todayRecord?.checkIn && (
                   <span className="ms-2">
-                    &bull; In: <span className="font-monospace fw-semibold">{formatTime(todayRecord.checkIn)}</span>
-                    {todayRecord?.checkOut && (
-                      <> | Out: <span className="font-monospace fw-semibold">{formatTime(todayRecord.checkOut)}</span></>
-                    )}
+                    &bull; Check-in: <span className="font-monospace fw-semibold">{formatTime(todayRecord.checkIn)}</span>
+                    <span className="ms-2">
+                      | Check-out: <span className="font-monospace fw-semibold">{todayRecord?.checkOut ? formatTime(todayRecord.checkOut) : "--"}</span>
+                    </span>
                   </span>
                 )}
               </p>
@@ -308,7 +314,7 @@ export function Attendance() {
                       <td className="fw-semibold">{formatDate(rec.date)}</td>
                       <td className="font-monospace small">{formatTime(rec.checkIn)}</td>
                       <td className="font-monospace small text-muted">
-                        {rec.checkOut ? formatTime(rec.checkOut) : "--:--"}
+                        {rec.checkOut ? formatTime(rec.checkOut) : "--"}
                       </td>
                       <td>
                         <StatusBadge status={rec.status} />

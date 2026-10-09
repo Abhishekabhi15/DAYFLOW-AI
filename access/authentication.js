@@ -15,7 +15,7 @@ const authenticate = async (req, res, next) => {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET || "dayflow_secret");
 
-    const user = await User.findById(decoded.userId).select("-password");
+    const user = await User.findById(decoded.userId || decoded.id).select("-password");
 
     if (!user) {
       return res.status(401).json({

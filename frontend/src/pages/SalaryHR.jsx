@@ -255,7 +255,7 @@ export function SalaryHR() {
           <div className="row g-2 align-items-center">
             <div className="col-12 col-md-5">
               <div className="input-group input-group-sm">
-                <span className="input-group-text bg-light border-end-0">
+                <span className="input-group-text border-end-0">
                   <i className="bi bi-search text-muted"></i>
                 </span>
                 <input
@@ -606,7 +606,7 @@ export function SalaryHR() {
                 <p className="mb-2">
                   Disbursing salary to: <strong>{selectedSalary.employee?.name}</strong> ({selectedSalary.employeeId})
                 </p>
-                <div className="p-3 rounded-3 border mb-3 bg-light-subtle">
+                <div className="p-3 rounded-3 border mb-3" style={{ backgroundColor: "var(--surface-muted)", borderColor: "var(--border-color)" }}>
                   <div className="d-flex justify-content-between mb-1">
                     <span className="text-muted small">Month:</span>
                     <span className="fw-semibold small">{selectedSalary.salaryMonth}</span>

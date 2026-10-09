@@ -94,7 +94,7 @@ export function Login({ onSwitchToAdmin, onLoginSuccess }) {
                 Work Email or Employee ID
               </label>
               <div className="input-group">
-                <span className="input-group-text bg-light border-end-0">
+                <span className="input-group-text border-end-0">
                   <i className="bi bi-person-badge text-muted"></i>
                 </span>
                 <input
@@ -119,7 +119,7 @@ export function Login({ onSwitchToAdmin, onLoginSuccess }) {
                 </label>
               </div>
               <div className="input-group">
-                <span className="input-group-text bg-light border-end-0">
+                <span className="input-group-text border-end-0">
                   <i className="bi bi-lock text-muted"></i>
                 </span>
                 <input

@@ -353,7 +353,7 @@ export function EmployeeApprovals() {
                 <p className="mb-2">
                   Are you sure you want to approve and activate the account for:
                 </p>
-                <div className="p-3 rounded-3 border mb-3 bg-light-subtle">
+                <div className="p-3 rounded-3 border mb-3" style={{ backgroundColor: "var(--surface-muted)", borderColor: "var(--border-color)" }}>
                   <div className="fw-bold">{selectedEmployee.name}</div>
                   <div className="small text-muted font-monospace">{selectedEmployee.employeeId} &bull; {selectedEmployee.email}</div>
                   <div className="small text-muted">{selectedEmployee.designation} &bull; {selectedEmployee.department}</div>
