@@ -135,7 +135,18 @@ export function ApplyLeave({ onLeaveSubmitted }) {
     return diff > 0 ? diff : 1;
   };
 
+  // My Applications: strictly the currently authenticated user's own applications
+  const myLeaves = leavesList.filter((leave) => {
+    const empId = leave.employee?._id || leave.employee;
+    return String(empId) === String(user?._id);
+  });
+
+  // Staff Requests: requests from staff to be reviewed by Manager/HR (excluding self)
   const staffRequests = leavesList.filter((leave) => {
+    const empId = leave.employee?._id || leave.employee;
+    const isOwn = String(empId) === String(user?._id);
+    if (isOwn) return false;
+
     if (user?.role === "HR Officer") {
       // HR Leave page: Show Employee leave requests
       return leave.employee?.role === "Employee";
@@ -144,7 +155,7 @@ export function ApplyLeave({ onLeaveSubmitted }) {
       // Manager Leave page: Show Employee leave + HR Officer leave
       return leave.employee?.role === "Employee" || leave.employee?.role === "HR Officer";
     }
-    return true;
+    return false;
   });
 
   const filteredLeaves = staffRequests.filter((leave) => {
@@ -185,7 +196,7 @@ export function ApplyLeave({ onLeaveSubmitted }) {
               fetchLeaves();
             }}
           >
-            <i className="bi bi-clock-history me-1"></i> My Applications ({leavesList.length})
+            <i className="bi bi-clock-history me-1"></i> My Applications ({myLeaves.length})
           </button>
           {isAdminOrHR && (
             <button
@@ -332,7 +343,7 @@ export function ApplyLeave({ onLeaveSubmitted }) {
           <div className="card-header py-3 d-flex justify-content-between align-items-center">
             <h5 className="card-title fw-bold mb-0 d-flex align-items-center gap-2">
               <i className="bi bi-clock-history text-primary fs-5"></i>
-              My Leave History ({leavesList.length})
+              My Leave History ({myLeaves.length})
             </h5>
             <button
               type="button"
@@ -349,7 +360,7 @@ export function ApplyLeave({ onLeaveSubmitted }) {
                 <div className="spinner-border text-secondary mb-3" role="status"></div>
                 <p className="mb-0">Loading your applications...</p>
               </div>
-            ) : leavesList.length === 0 ? (
+            ) : myLeaves.length === 0 ? (
               <div className="empty-state-box">
                 <i className="bi bi-calendar-x empty-state-icon"></i>
                 <p className="mb-2">No leave applications submitted yet.</p>
@@ -376,7 +387,7 @@ export function ApplyLeave({ onLeaveSubmitted }) {
                     </tr>
                   </thead>
                   <tbody>
-                    {leavesList.map((leave) => (
+                    {myLeaves.map((leave) => (
                       <tr key={leave._id}>
                         <td className="fw-semibold">{leave.leaveType} Leave</td>
                         <td className="small">

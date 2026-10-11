@@ -27,7 +27,7 @@ const getLeaves = async (req, res) => {
   try {
     let filter = {};
 
-    if (req.user.role === "Employee") {
+    if (req.user.role === "Employee" || req.query.my === "true" || req.query.scope === "my") {
       filter.employee = req.user._id;
     }
 
