@@ -273,7 +273,7 @@ function AppContent() {
         style={{
           backgroundColor: "var(--surface-card)",
           borderColor: "var(--border-color)",
-          color: "var(--text-muted)",
+          color: "var(--text-secondary)",
         }}
       >
         <div className="container">
