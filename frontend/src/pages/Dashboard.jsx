@@ -498,7 +498,7 @@ export function Dashboard({ onNavigate }) {
                               <td className="small fw-semibold text-success">{formatTime(att.checkIn)}</td>
                               <td className="small text-muted">{att.checkOut ? formatTime(att.checkOut) : "--"}</td>
                               <td>
-                                <StatusBadge status={att.checkOut ? "Completed" : "Present"} />
+                                <StatusBadge status={att.checkOut ? "Completed" : (att.status || "In Progress")} />
                               </td>
                             </tr>
                           ))}

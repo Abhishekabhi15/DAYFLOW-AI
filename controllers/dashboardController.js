@@ -14,10 +14,20 @@ const getDashboard = async (req, res) => {
       .populate("approvedBy", "name employeeId email")
       .sort({ name: 1 });
 
-    const attendance = await Attendance.find()
+    const rawAttendance = await Attendance.find()
       .populate("employee", "employeeId name role department designation")
-      .sort({ date: -1 })
+      .sort({ date: -1, checkIn: -1 })
       .limit(30);
+
+    const attendance = rawAttendance.map((item) => {
+      const doc = item.toObject ? item.toObject() : { ...item };
+      if (doc.checkIn && !doc.checkOut) {
+        doc.status = "In Progress";
+      } else if (doc.checkIn && doc.checkOut && (!doc.status || doc.status === "Present" || doc.status === "In Progress")) {
+        doc.status = "Completed";
+      }
+      return doc;
+    });
 
     const pendingLeaves = await Leave.find({
       status: "Pending",

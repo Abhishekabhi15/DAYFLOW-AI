@@ -16,7 +16,7 @@ const { seedAdmin } = require("./actions/authenticationActions");
 
 const app = express();
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
@@ -93,11 +93,19 @@ function sanitizeMongoUri(uri) {
 
 // Database connection & startup sequence
 async function startServer() {
-  let mongoUri = sanitizeMongoUri(process.env.MONGO_URI);
+  const isProduction = process.env.NODE_ENV === "production";
+  const rawMongoUri = process.env.MONGO_URI;
+
+  if (isProduction && (!rawMongoUri || !rawMongoUri.trim())) {
+    console.error("FATAL ERROR: MONGO_URI environment variable is required in production mode.");
+    process.exit(1);
+  }
+
+  let mongoUri = sanitizeMongoUri(rawMongoUri);
 
   if (!mongoUri || !mongoUri.trim()) {
     try {
-      console.log("No MONGO_URI specified, initializing in-memory Mongo instance...");
+      console.log("No MONGO_URI specified in development, initializing in-memory Mongo instance...");
       const { MongoMemoryServer } = require("mongodb-memory-server");
       const mongod = await MongoMemoryServer.create();
       mongoUri = mongod.getUri();
@@ -118,38 +126,25 @@ async function startServer() {
     app.listen(PORT, "0.0.0.0", () => {
       console.log(`Dayflow HRMS server running on http://0.0.0.0:${PORT}`);
     });
-
-    // Also bind port 5001 for local Vite dev compatibility
-    if (PORT !== 5001) {
-      try {
-        const localServer = app.listen(5001, "0.0.0.0", () => {
-          console.log(`Dayflow HRMS local API endpoint also available on http://0.0.0.0:5001`);
-        });
-        localServer.on("error", (err) => {
-          if (err.code !== "EADDRINUSE") {
-            console.warn("Port 5001 notice:", err.message);
-          }
-        });
-      } catch (portErr) {
-        // Port 5001 notice
-      }
-    }
   } catch (error) {
-    console.error("Failed to connect to primary MongoDB URI, attempting fallback:", error.message);
+    if (isProduction) {
+      console.error("FATAL ERROR: Failed to connect to MongoDB in production:", error.message);
+      process.exit(1);
+    }
+
+    console.error("Failed to connect to primary MongoDB URI, attempting development fallback:", error.message);
     try {
       const { MongoMemoryServer } = require("mongodb-memory-server");
       const mongod = await MongoMemoryServer.create();
       await mongoose.connect(mongod.getUri(), { dbName: "dayflow" });
-      console.log("Fallback MongoDB connected.");
+      console.log("Development fallback MongoDB connected.");
       await seedAdmin();
       app.listen(PORT, "0.0.0.0", () => {
         console.log(`Dayflow HRMS server running on http://0.0.0.0:${PORT}`);
       });
     } catch (fallbackErr) {
       console.error("Fatal: MongoDB connection totally failed:", fallbackErr.message);
-      app.listen(PORT, "0.0.0.0", () => {
-        console.log(`Dayflow HRMS running in offline mode on port ${PORT}`);
-      });
+      process.exit(1);
     }
   }
 }

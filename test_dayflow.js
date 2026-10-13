@@ -122,15 +122,18 @@ async function runTests() {
 
   // TEST 3: HR attempts to approve another HR's leave (HR Officer leave) -> Must return 403
   console.log("\n--- TEST 3: HR ATTEMPTING TO APPROVE HR OFFICER LEAVE (MUST FAIL 403) ---");
-  const hr2 = await User.create({
-    employeeId: "HR002",
-    name: "Second HR",
-    email: "hr2@dayflow.com",
-    password: "hash",
-    role: "HR Officer",
-    status: "Active",
-    approvalStatus: "Approved",
-  });
+  let hr2 = await User.findOne({ email: "hr2@dayflow.com" });
+  if (!hr2) {
+    hr2 = await User.create({
+      employeeId: "HR002",
+      name: "Second HR",
+      email: "hr2@dayflow.com",
+      password: "hash",
+      role: "HR Officer",
+      status: "Active",
+      approvalStatus: "Approved",
+    });
+  }
 
   mockRes = {
     statusCode: 200,

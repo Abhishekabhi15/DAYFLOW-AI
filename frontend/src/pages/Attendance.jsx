@@ -268,6 +268,8 @@ export function Attendance() {
               onChange={(e) => setStatusFilter(e.target.value)}
             >
               <option value="">All Statuses</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Completed">Completed</option>
               <option value="Present">Present</option>
               <option value="Absent">Absent</option>
               <option value="Half-day">Half-day</option>
