@@ -1,2 +1,2 @@
 # HRMS
-odoo hackathon 2026
+Fullstack Development Microproject
